@@ -73,10 +73,23 @@ module Log = struct
   type t = { messages : Message.t list } [@@deriving yojson]
 end
 
+let select_payload (m : Message.t) =
+  match m.text with
+  | None -> "no text"
+  | Some text -> text
+
+let print_message (m : Message.t) =
+  Format.printf "@[%s @@ %s@]@\n" m.creator.name m.created_date;
+  let payload = select_payload m in
+  Format.printf "@[ %s @]@\n@\n" payload
+
+let print_messages = List.iter print_message
+
 let handle_json json =
   try
     let log : Log.t = Log.t_of_yojson json in
-    Format.eprintf "Read %d messages@\n" (List.length log.messages)
+    Format.eprintf "Read %d messages@\n" (List.length log.messages);
+    print_messages log.messages
   with
   | Of_yojson_error (exn, obj) ->
     let exn_msg = Printexc.to_string exn in
